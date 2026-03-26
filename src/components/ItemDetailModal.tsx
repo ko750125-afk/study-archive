@@ -9,10 +9,10 @@ interface Props {
 }
 
 const typeLabels: Record<string, string> = {
-  url: "링크",
-  image: "이미지",
-  text: "텍스트",
-  notion: "노션 자료",
+  url: "Source Link",
+  image: "Visual Resource",
+  text: "Thought Snippet",
+  notion: "Workspace Doc",
 };
 
 export function ItemDetailModal({ item, onClose }: Props) {
@@ -29,118 +29,123 @@ export function ItemDetailModal({ item, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6"
+      className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6 transition-all duration-500"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-surface/40 backdrop-blur-xl animate-fade-in" />
 
       <div
-        className="relative w-full md:max-w-2xl bg-white rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in"
+        className="relative w-full md:max-w-2xl glass-panel bg-white/80 rounded-t-[2.5rem] md:rounded-[3rem] shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in border border-white/50"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Handle (mobile) */}
-        <div className="md:hidden flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-[#dbe4e7] rounded-full" />
+        <div className="md:hidden flex justify-center pt-4 pb-2">
+          <div className="w-12 h-1.5 bg-on-surface/10 rounded-full" />
         </div>
 
-        {/* Content area */}
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div>
-              <span className="text-[11px] uppercase tracking-widest font-bold text-[#476363] bg-[#cae8e8] px-2.5 py-0.5 rounded-full">
-                {typeLabels[item.type] || "자료"}
-              </span>
-              <h2
-                className="text-xl font-bold text-[#2b3437] mt-2"
-                style={{ fontFamily: "Manrope, sans-serif" }}
-              >
-                {item.title || "(제목 없음)"}
+        <div className="p-8 md:p-10">
+          <div className="flex items-start justify-between gap-6 mb-8">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-primary bg-primary/10 px-3 py-1 rounded-lg ring-1 ring-primary/20">
+                  {typeLabels[item.type] || "Archive"}
+                </span>
+                {item.priority !== "none" && (
+                  <span className={`text-[10px] uppercase tracking-[0.2em] font-black px-3 py-1 rounded-lg ${
+                    item.priority === 'high' ? 'bg-red-500/10 text-red-500 ring-1 ring-red-500/20' :
+                    item.priority === 'medium' ? 'bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20' :
+                    'bg-emerald-500/10 text-emerald-500 ring-1 ring-emerald-500/20'
+                  }`}>
+                    {item.priority}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-2xl font-black text-on-surface leading-tight tracking-tight">
+                {item.title || "Untitled Insight"}
               </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl hover:bg-[#eaeff1] text-[#586064] transition-colors shrink-0"
+              className="w-12 h-12 flex items-center justify-center rounded-2xl hover:bg-surface-container text-on-surface-variant transition-all hover:rotate-90 duration-300"
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined text-[24px]">close</span>
             </button>
           </div>
 
-          {/* YouTube embed */}
-          {isYouTube && (
-            <div className="aspect-video rounded-2xl overflow-hidden bg-black mb-4">
-              <iframe
-                src={`https://www.youtube.com/embed/${getYouTubeId(item.content)}`}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+          <div className="space-y-6 mb-10">
+            {isYouTube && (
+              <div className="aspect-video rounded-[2rem] overflow-hidden bg-black shadow-2xl ring-1 ring-white/20">
+                <iframe
+                  src={`https://www.youtube.com/embed/${getYouTubeId(item.content)}`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            )}
+
+            {isImage && !isYouTube && (
+              <div className="rounded-[2.5rem] overflow-hidden bg-surface-container-low shadow-xl ring-1 ring-white/50 group relative">
+                <img
+                  src={item.content}
+                  alt={item.title}
+                  className="w-full object-contain max-h-[400px] transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+            )}
+
+            {!isImage && !isYouTube && (
+              <div className="bg-surface-container-lowest/50 rounded-[2rem] p-8 border border-outline-variant/30 relative">
+                <span className="absolute top-4 right-6 material-symbols-outlined text-on-surface-variant/20 text-[40px]">format_quote</span>
+                <pre className="text-base text-on-surface whitespace-pre-wrap font-medium leading-relaxed max-h-80 overflow-y-auto relative z-10 custom-scrollbar">
+                  {item.content}
+                </pre>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-8">
+            {item.description && (
+              <div className="space-y-2">
+                <h4 className="text-[11px] font-black text-on-surface-variant/40 uppercase tracking-widest">Context & Notes</h4>
+                <p className="text-sm font-medium text-on-surface-variant leading-relaxed">{item.description}</p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-6 pt-6 border-t border-outline-variant/30">
+              {item.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {item.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="text-[11px] px-3 py-1.5 bg-surface-container text-primary font-bold rounded-lg border border-outline-variant/30"
+                    >
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="text-[10px] font-bold text-on-surface-variant/30 uppercase tracking-[0.15em] flex items-center gap-2">
+                <span className="material-symbols-outlined text-[14px]">history</span>
+                Captured on {new Date(item.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </div>
             </div>
-          )}
+          </div>
 
-          {/* Image */}
-          {isImage && !isYouTube && (
-            <div className="rounded-2xl overflow-hidden mb-4 bg-[#eaeff1]">
-              <img
-                src={item.content}
-                alt={item.title}
-                className="w-full object-contain max-h-80"
-              />
-            </div>
-          )}
-
-          {/* Content */}
-          {!isImage && !isYouTube && (
-            <div className="bg-[#f8f9fa] rounded-2xl p-4 mb-4">
-              <pre className="text-sm text-[#2b3437] whitespace-pre-wrap font-body leading-relaxed max-h-64 overflow-y-auto">
-                {item.content}
-              </pre>
-            </div>
-          )}
-
-          {/* Description */}
-          {item.description && (
-            <p className="text-sm text-[#586064] mb-4 leading-relaxed">{item.description}</p>
-          )}
-
-          {/* Tags */}
-          {item.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {item.tags.map((t) => (
-                <span
-                  key={t}
-                  className="text-xs px-3 py-1 bg-[#cae8e8] text-[#476363] rounded-full font-medium"
-                >
-                  #{t}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Meta */}
-          <p className="text-xs text-[#abb3b7] mb-6">
-            추가됨:{" "}
-            {new Date(item.createdAt).toLocaleString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-
-          {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex gap-4 mt-10">
             {isUrl && (
               <a
                 href={item.content}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#476363] text-white rounded-xl font-semibold text-sm hover:bg-[#3c5757] transition-colors"
-                style={{ fontFamily: "Manrope, sans-serif" }}
+                className="flex-[2] flex items-center justify-center gap-3 py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary-600 active:scale-95 transition-all shadow-xl shadow-primary/20"
               >
-                <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                원본 열기
+                <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                Access Resource
               </a>
             )}
             <button
@@ -148,10 +153,10 @@ export function ItemDetailModal({ item, onClose }: Props) {
                 deleteItem(item.id);
                 onClose();
               }}
-              className="flex items-center justify-center gap-2 px-4 py-3 border border-red-200 text-red-500 rounded-xl font-semibold text-sm hover:bg-red-50 transition-colors"
+              className="flex-1 flex items-center justify-center gap-3 py-4 border-2 border-red-100 text-red-500 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-50 hover:border-red-200 active:scale-95 transition-all"
             >
-              <span className="material-symbols-outlined text-[18px]">delete</span>
-              삭제
+              <span className="material-symbols-outlined text-[20px]">delete</span>
+              Discard
             </button>
           </div>
         </div>

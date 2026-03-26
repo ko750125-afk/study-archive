@@ -12,25 +12,20 @@ const typeIcons: Record<string, string> = {
 };
 
 const priorityColors: Record<Priority, string> = {
-  high: "bg-red-100 text-red-700",
-  medium: "bg-amber-100 text-amber-700",
-  low: "bg-emerald-100 text-emerald-700",
-  none: "bg-[#eaeff1] text-[#586064]",
+  high: "bg-red-50 text-red-600 ring-1 ring-red-100",
+  medium: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
+  low: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100",
+  none: "bg-surface-container text-on-surface-variant/40",
 };
 
 const priorityLabels: Record<Priority, string> = {
-  high: "우선",
-  medium: "보통",
-  low: "나중에",
+  high: "Urgent",
+  medium: "Normal",
+  low: "Later",
   none: "-",
 };
 
-interface Props {
-  item: ArchiveItem;
-  onOpen: (item: ArchiveItem) => void;
-}
-
-export function ItemCard({ item, onOpen }: Props) {
+export function ItemCard({ item, onOpen }: { item: ArchiveItem; onOpen: (i: ArchiveItem) => void }) {
   const deleteItem = useStore((s) => s.deleteItem);
   const updateItem = useStore((s) => s.updateItem);
   const [showMenu, setShowMenu] = useState(false);
@@ -46,45 +41,44 @@ export function ItemCard({ item, onOpen }: Props) {
 
   return (
     <div
-      className="group relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-[#cae8e8] cursor-pointer animate-fade-in overflow-hidden"
+      className="group relative bg-white rounded-[2rem] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-outline-variant/30 hover:border-primary/20 cursor-pointer animate-fade-in overflow-hidden flex flex-col h-full"
       onClick={() => onOpen(item)}
     >
       {/* Thumbnail */}
-      {item.thumbnail && (
-        <div className="h-36 overflow-hidden">
+      {item.thumbnail ? (
+        <div className="h-44 overflow-hidden relative">
           <img
             src={item.thumbnail}
             alt={item.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
+      ) : (
+        <div className="h-4 shrink-0 bg-surface-container-low" />
       )}
 
-      <div className="p-5">
+      <div className="p-6 flex flex-col flex-grow">
         {/* Header row */}
-        <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-start justify-between gap-3 mb-4">
           <div
-            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
               item.type === "url"
-                ? "bg-[#cae8e8] text-[#476363]"
+                ? "bg-primary-50 text-primary"
                 : item.type === "image"
-                ? "bg-[#d6e7d7] text-[#546356]"
-                : item.type === "notion"
-                ? "bg-[#eaeff1] text-[#586064]"
-                : "bg-[#fd8a42]/15 text-[#9d4500]"
+                ? "bg-secondary-50 text-secondary"
+                : "bg-surface-container-highest text-on-surface-variant"
             }`}
           >
-            <span className="material-symbols-outlined text-[18px]">{icon}</span>
+            <span className="material-symbols-outlined text-[20px]">{icon}</span>
           </div>
-          <div className="flex items-center gap-1 ml-auto">
+          <div className="flex items-center gap-1.5 ml-auto">
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                updateItem(item.id, {
-                  priority: cycledPriority[item.priority],
-                });
+                updateItem(item.id, { priority: cycledPriority[item.priority] });
               }}
-              className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide transition-colors ${
+              className={`text-[9px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider transition-all hover:scale-105 ${
                 priorityColors[item.priority]
               }`}
             >
@@ -95,51 +89,53 @@ export function ItemCard({ item, onOpen }: Props) {
                 e.stopPropagation();
                 setShowMenu(!showMenu);
               }}
-              className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-[#eaeff1] text-[#737c7f] transition-all"
+              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-xl hover:bg-surface-container-highest text-on-surface-variant transition-all duration-300"
             >
-              <span className="material-symbols-outlined text-[18px]">more_vert</span>
+              <span className="material-symbols-outlined text-[20px]">more_horiz</span>
             </button>
           </div>
         </div>
 
-        {/* Title */}
-        <h4 className="font-semibold text-[#2b3437] leading-snug mb-1 line-clamp-2" style={{ fontFamily: "Manrope, sans-serif" }}>
-          {item.title || "(제목 없음)"}
-        </h4>
+        {/* Content */}
+        <div className="space-y-2 mb-4 flex-grow">
+          <h4 className="font-bold text-on-surface text-base leading-tight line-clamp-2 min-h-[2.5rem]">
+            {item.title || "Untitled Insight"}
+          </h4>
+          {item.description && (
+            <p className="text-xs text-on-surface-variant/70 line-clamp-2 leading-relaxed font-medium">
+              {item.description}
+            </p>
+          )}
+        </div>
 
-        {/* Description */}
-        {item.description && (
-          <p className="text-xs text-[#586064] line-clamp-2 mb-3">{item.description}</p>
-        )}
-
-        {/* Tags */}
-        {item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {item.tags.slice(0, 3).map((tag) => (
+        {/* Footer */}
+        <div className="pt-4 border-t border-outline-variant/10 flex items-center justify-between">
+          <div className="flex flex-wrap gap-1.5 max-w-[70%]">
+            {item.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="text-[10px] px-2 py-0.5 bg-[#eaeff1] text-[#586064] rounded-full font-medium"
+                className="text-[9px] font-bold text-primary/60"
               >
                 #{tag}
               </span>
             ))}
+            {item.tags.length > 2 && (
+              <span className="text-[9px] font-bold text-on-surface-variant/30">+{item.tags.length - 2}</span>
+            )}
           </div>
-        )}
-
-        {/* Date */}
-        <p className="text-[11px] text-[#abb3b7]">
-          {new Date(item.createdAt).toLocaleDateString("ko-KR", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
+          <p className="text-[10px] font-black uppercase tracking-tighter text-on-surface-variant/20">
+            {new Date(item.createdAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
+          </p>
+        </div>
       </div>
 
       {/* Dropdown menu */}
       {showMenu && (
         <div
-          className="absolute top-12 right-3 z-10 bg-white rounded-xl shadow-xl border border-[#eaeff1] py-1 min-w-[120px] animate-scale-in"
+          className="absolute top-14 right-4 z-10 glass-panel rounded-2xl py-2 min-w-[140px] animate-scale-in shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {item.type === "url" && item.content && (
@@ -147,11 +143,11 @@ export function ItemCard({ item, onOpen }: Props) {
               href={item.content}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-[#586064] hover:bg-[#eaeff1]"
+              className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-on-surface-variant hover:bg-primary-50 hover:text-primary transition-colors"
               onClick={() => setShowMenu(false)}
             >
-              <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-              열기
+              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+              Source
             </a>
           )}
           <button
@@ -159,10 +155,10 @@ export function ItemCard({ item, onOpen }: Props) {
               deleteItem(item.id);
               setShowMenu(false);
             }}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 w-full"
+            className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 w-full transition-colors"
           >
-            <span className="material-symbols-outlined text-[16px]">delete</span>
-            삭제
+            <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+            Discard
           </button>
         </div>
       )}

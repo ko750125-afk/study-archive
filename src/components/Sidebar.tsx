@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const navItems = [
-  { href: "/", icon: "home", label: "대시보드" },
-  { href: "/archive", icon: "inventory_2", label: "전체 자료" },
-  { href: "/add", icon: "add_circle", label: "자료 추가" },
+  { href: "/", icon: "home", label: "Dashboard" },
+  { href: "/archive", icon: "inventory_2", label: "Archive" },
+  { href: "/add", icon: "add_circle", label: "Quick Add" },
 ];
 
 export function Sidebar() {
@@ -20,48 +20,41 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile overlay backdrop */}
-      <div className="md:hidden" />
-
-      <aside className="hidden md:flex h-screen w-64 fixed left-0 top-0 flex-col bg-[#eaeff1] z-50">
-        {/* Logo */}
-        <div className="px-5 py-6 border-b border-black/5">
-          <div className="flex items-center gap-2.5 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-[#476363] flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-[18px]">
+      <aside className="hidden md:flex h-screen w-64 fixed left-0 top-0 flex-col bg-surface/80 backdrop-blur-xl border-r border-outline-variant z-50">
+        <div className="px-6 py-8">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+              <span className="material-symbols-outlined text-white text-[22px]">
                 auto_stories
               </span>
             </div>
-            <h1
-              className="text-[17px] font-extrabold text-[#476363]"
-              style={{ fontFamily: "Manrope, sans-serif" }}
-            >
-              학습 아카이브
-            </h1>
+            <div>
+              <h1 className="text-lg font-bold text-primary leading-tight">
+                Study Archive
+              </h1>
+              <p className="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60">
+                Workspace
+              </p>
+            </div>
           </div>
-          <p className="text-[11px] text-[#586064] font-medium ml-10.5">
-            개인 학습 공간
-          </p>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-grow p-3 space-y-1">
+        <nav className="flex-grow p-4 space-y-1.5">
           {navItems.map(({ href, icon, label }) => {
             const isActive = pathname === href;
             return (
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 ${
                   isActive
-                    ? "bg-white text-[#476363] shadow-sm"
-                    : "text-[#586064] hover:bg-white/60"
+                    ? "bg-primary-50 text-primary shadow-sm ring-1 ring-primary/10"
+                    : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
                 }`}
-                style={{ fontFamily: "Manrope, sans-serif" }}
               >
                 <span
-                  className={`material-symbols-outlined text-[20px] ${
-                    isActive ? "text-[#476363]" : "text-[#737c7f]"
+                  className={`material-symbols-outlined text-[22px] transition-transform duration-300 ${
+                    isActive ? "material-symbols-filled scale-110" : "opacity-70"
                   }`}
                 >
                   {icon}
@@ -71,71 +64,71 @@ export function Sidebar() {
             );
           })}
 
-          {/* Stats */}
-          <div className="mt-6 pt-4 border-t border-black/5 space-y-2">
-            <p className="text-[10px] uppercase tracking-widest text-[#737c7f] px-3 mb-3">
-              현황
-            </p>
-            <div className="px-3 py-2.5 rounded-xl bg-white/60 space-y-2.5">
+          <div className="mt-8 pt-6 border-t border-outline-variant/30 space-y-4">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50 px-4">
+              Overview
+            </h3>
+            <div className="mx-2 p-4 rounded-3xl bg-surface-container-low/50 border border-outline-variant/20 space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-[#586064]">전체 자료</span>
-                <span className="text-xs font-bold text-[#2b3437]">{total}개</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-outline-variant" />
+                  <span className="text-xs font-medium text-on-surface-variant">Total</span>
+                </div>
+                <span className="text-xs font-bold text-on-surface">{total}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-[#586064]">우선 학습</span>
-                <span className="text-xs font-bold text-[#476363]">
-                  {highPriority}개
-                </span>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <span className="text-xs font-medium text-on-surface-variant">Priority</span>
+                </div>
+                <span className="text-xs font-bold text-primary">{highPriority}</span>
               </div>
             </div>
           </div>
         </nav>
 
-        {/* Bottom: status + settings */}
-        <div className="p-3 border-t border-black/5 space-y-1">
-          <div className="flex items-center gap-2 px-3 py-2">
+        <div className="p-4 border-t border-outline-variant/30 space-y-2">
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-surface-container-highest/30">
             <div
-              className={`w-2 h-2 rounded-full ${
-                isConnected ? "bg-emerald-500" : "bg-amber-400"
+              className={`w-2.5 h-2.5 rounded-full shadow-sm animate-pulse ${
+                isConnected ? "bg-emerald-500 shadow-emerald-500/20" : "bg-amber-500 shadow-amber-500/20"
               }`}
             />
-            <span className="text-xs text-[#586064]">
-              {isConnected ? "클라우드 연결됨" : "로컬 저장 중"}
+            <span className="text-[11px] font-bold text-on-surface-variant">
+              {isConnected ? "Cloud Sync Active" : "Local Mode"}
             </span>
           </div>
           <Link
             href="/settings"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#586064] hover:bg-white/60 transition-all"
-            style={{ fontFamily: "Manrope, sans-serif" }}
+            className="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
           >
-            <span className="material-symbols-outlined text-[20px] text-[#737c7f]">
+            <span className="material-symbols-outlined text-[22px] opacity-70">
               settings
             </span>
-            설정
+            Settings
           </Link>
         </div>
       </aside>
 
-      {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#eaeff1] flex items-center justify-around px-2 py-2 safe-area-pb">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-xl border-t border-outline-variant flex items-center justify-around px-4 py-3 safe-area-pb">
         {navItems.map(({ href, icon, label }) => {
           const isActive = pathname === href;
           return (
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
-                isActive ? "text-[#476363]" : "text-[#737c7f]"
+              className={`flex flex-col items-center gap-1 p-2 transition-all ${
+                isActive ? "text-primary scale-110" : "text-on-surface-variant opacity-60"
               }`}
             >
               <span
-                className={`material-symbols-outlined text-[24px] ${
-                  isActive ? "material-symbols-filled text-[#476363]" : ""
+                className={`material-symbols-outlined text-[26px] ${
+                  isActive ? "material-symbols-filled" : ""
                 }`}
               >
                 {icon}
               </span>
-              <span className="text-[10px] font-medium">{label}</span>
+              <span className="text-[10px] font-bold">{label}</span>
             </Link>
           );
         })}
