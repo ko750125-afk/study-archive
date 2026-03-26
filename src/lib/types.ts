@@ -1,5 +1,11 @@
 export type ItemType = "text" | "url" | "image" | "notion";
-export type Priority = "high" | "medium" | "low" | "none";
+
+export interface SubItem {
+  id: string;
+  type: "url" | "text";
+  title: string;
+  content: string;
+}
 
 export interface ArchiveItem {
   id: string;
@@ -9,7 +15,7 @@ export interface ArchiveItem {
   thumbnail?: string;    // URL 미리보기 이미지
   description?: string;  // URL 설명 또는 메모
   tags: string[];
-  priority: Priority;
+  subItems?: SubItem[];
   createdAt: number;
   updatedAt: number;
 }

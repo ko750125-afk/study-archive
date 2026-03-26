@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { ArchiveItem, Priority } from "@/lib/types";
+import { ArchiveItem } from "@/lib/types";
 import {
   collection,
   addDoc,
@@ -121,7 +121,7 @@ export const useStore = create<StoreState>()(
                 thumbnail: data.thumbnail,
                 description: data.description,
                 tags: data.tags || [],
-                priority: data.priority || "none",
+                subItems: data.subItems || [],
                 createdAt: toMs(data.createdAt),
                 updatedAt: toMs(data.updatedAt),
               };

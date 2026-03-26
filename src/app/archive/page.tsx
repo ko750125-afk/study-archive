@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { ArchiveItem, Priority } from "@/lib/types";
+import { ArchiveItem } from "@/lib/types";
 import { ItemCard } from "@/components/ItemCard";
 import { AddItemModal } from "@/components/AddItemModal";
 import { ItemDetailModal } from "@/components/ItemDetailModal";
@@ -18,15 +18,7 @@ const FILTER_OPTIONS: { label: string; value: string }[] = [
 const SORT_OPTIONS = [
   { label: "최신순", value: "latest" },
   { label: "오래된 순", value: "oldest" },
-  { label: "우선순위", value: "priority" },
 ];
-
-const priorityOrder: Record<Priority, number> = {
-  high: 0,
-  medium: 1,
-  low: 2,
-  none: 3,
-};
 
 export default function ArchivePage() {
   const items = useStore((s) => s.items);
@@ -47,8 +39,6 @@ export default function ArchivePage() {
     )
     .sort((a, b) => {
       if (sort === "oldest") return a.createdAt - b.createdAt;
-      if (sort === "priority")
-        return priorityOrder[a.priority] - priorityOrder[b.priority];
       return b.createdAt - a.createdAt;
     });
 

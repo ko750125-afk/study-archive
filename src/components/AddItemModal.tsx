@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef } from "react";
 import { useStore } from "@/lib/store";
 import { fetchMetadata } from "@/lib/actions";
-import { ItemType, Priority } from "@/lib/types";
+import { ItemType } from "@/lib/types";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { app } from "@/lib/firebase";
 
@@ -19,7 +19,10 @@ export function AddItemModal({ onClose }: Props) {
   const [title, setTitle] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [priority, setPriority] = useState<Priority>("none");
+  const [subItems, setSubItems] = useState<{ title: string; content: string }[]>([]);
+  const [newSubTitle, setNewSubTitle] = useState("");
+  const [newSubContent, setNewSubContent] = useState("");
+  const [showSubInput, setShowSubInput] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -109,7 +112,12 @@ export function AddItemModal({ onClose }: Props) {
         title: title || content.slice(0, 60),
         content: content.trim(),
         tags,
-        priority,
+        subItems: subItems.map((s, i) => ({
+          id: `sub-${Date.now()}-${i}`,
+          title: s.title,
+          content: s.content,
+          type: isUrl(s.content) ? "url" : "text",
+        })),
         thumbnail: undefined,
         description: undefined,
       });
@@ -257,32 +265,65 @@ export function AddItemModal({ onClose }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-3 mb-10">
-            {(["high", "medium", "low", "none"] as Priority[]).map((p) => {
-              const labels = { high: "URGENT", medium: "NORMAL", low: "LATER", none: "NONE" };
-              const colors = { 
-                high: "bg-red-500", 
-                medium: "bg-amber-500", 
-                low: "bg-emerald-500", 
-                none: "bg-on-surface-variant" 
-              };
-              const isActive = priority === p;
-              
-              return (
-                <button
-                  key={p}
-                  onClick={() => setPriority(p)}
-                  className={`relative py-4 rounded-2xl text-[10px] font-black tracking-[0.1em] transition-all overflow-hidden ${
-                    isActive
-                      ? "bg-primary text-white shadow-xl shadow-primary/20 scale-105 z-10"
-                      : "bg-surface-container-high text-on-surface-variant/60 hover:bg-surface-container-highest"
-                  }`}
-                >
-                  <div className={`absolute top-0 left-0 w-1 h-full ${colors[p]} opacity-50`} />
-                  {labels[p]}
-                </button>
-              );
-            })}
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-[11px] font-black text-on-surface-variant/40 uppercase tracking-widest">Related Resources</h4>
+              <button
+                onClick={() => setShowSubInput(!showSubInput)}
+                className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all"
+              >
+                {showSubInput ? "CANCEL" : "+ ADD RESOURCE"}
+              </button>
+            </div>
+
+            {showSubInput && (
+              <div className="bg-surface-container-low/30 rounded-2xl p-4 mb-4 border border-primary/20 space-y-3 animate-fade-in">
+                <input
+                  value={newSubTitle}
+                  onChange={(e) => setNewSubTitle(e.target.value)}
+                  placeholder="Resource title (e.g. Reference Link)"
+                  className="w-full px-4 py-2 bg-white rounded-xl text-xs font-bold outline-none border border-outline-variant/30 focus:border-primary/30"
+                />
+                <div className="flex gap-2">
+                  <input
+                    value={newSubContent}
+                    onChange={(e) => setNewSubContent(e.target.value)}
+                    placeholder="URL or Note..."
+                    className="flex-1 px-4 py-2 bg-white rounded-xl text-xs font-medium outline-none border border-outline-variant/30 focus:border-primary/30"
+                  />
+                  <button
+                    onClick={() => {
+                      if (newSubContent.trim()) {
+                        setSubItems([...subItems, { title: newSubTitle || "Note", content: newSubContent }]);
+                        setNewSubTitle("");
+                        setNewSubContent("");
+                        setShowSubInput(false);
+                      }
+                    }}
+                    className="px-4 bg-primary text-white rounded-xl text-xs font-black uppercase"
+                  >
+                    ADD
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {subItems.map((sub, idx) => (
+                <div key={idx} className="flex items-center justify-between bg-surface-container-highest/30 px-4 py-3 rounded-xl border border-outline-variant/10">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-primary uppercase">{sub.title}</span>
+                    <span className="text-[11px] font-medium text-on-surface-variant truncate max-w-[200px]">{sub.content}</span>
+                  </div>
+                  <button
+                    onClick={() => setSubItems(subItems.filter((_, i) => i !== idx))}
+                    className="text-on-surface-variant/40 hover:text-red-500 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           <button
@@ -296,7 +337,7 @@ export function AddItemModal({ onClose }: Props) {
               <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                Confirm Capture
+                자료 저장하기
                 <span className="material-symbols-outlined text-[20px] group-hover:translate-x-1 transition-transform">bolt</span>
               </>
             )}
