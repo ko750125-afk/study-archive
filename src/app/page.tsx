@@ -50,7 +50,7 @@ export default function DashboardPage() {
         {/* Welcome Section */}
         <section className="mb-12 animate-fade-in">
           <h2 className="text-4xl font-black text-primary tracking-tight mb-2">
-            오늘의 통찰
+            학습할 자료
           </h2>
           <div className="flex items-center gap-2 text-on-surface-variant font-semibold opacity-70">
             <span className="material-symbols-outlined text-[18px]">calendar_today</span>
@@ -75,10 +75,10 @@ export default function DashboardPage() {
             {/* Bento Grid: Main Dashboard */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Archive Section */}
-              <section className="lg:col-span-8 space-y-6">
+              <section className="lg:col-span-12 space-y-6">
                 <div className="flex items-center gap-3 px-2">
                   <div className="w-2 h-8 rounded-full bg-primary" />
-                  <h3 className="text-xl font-bold text-on-surface">Knowledge Archive</h3>
+                  <h3 className="text-xl font-bold text-on-surface">학습할 자료</h3>
                   <span className="ml-auto text-xs font-black text-primary bg-primary-50 px-3 py-1.5 rounded-full ring-1 ring-primary/10">
                     {filtered.length} ITEMS
                   </span>
@@ -100,11 +100,6 @@ export default function DashboardPage() {
                   </div>
                 )}
               </section>
-
-              {/* Learning Pattern Bento Card */}
-              <aside className="lg:col-span-4 sticky top-28">
-                <PatternAnalysisCard totalCount={items.length} />
-              </aside>
             </div>
           </div>
         )}
@@ -126,46 +121,7 @@ export default function DashboardPage() {
   );
 }
 
-function PatternAnalysisCard({ totalCount }: { totalCount: number }) {
-  // 예시 데이터: 실제로는 데이터에 기반하여 계산 가능
-  const retentionProgress = 85; 
-  
-  return (
-    <div className="p-8 rounded-[2.5rem] bg-primary text-white shadow-2xl shadow-primary/20 overflow-hidden relative group">
-      <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700" />
-      
-      <div className="relative z-10 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-            <span className="material-symbols-outlined text-[20px]">insights</span>
-          </div>
-          <h4 className="font-bold text-lg tracking-tight">지식 성장 패턴</h4>
-        </div>
-
-        <div className="space-y-1">
-          <p className="text-white/60 text-xs font-bold uppercase tracking-widest">지식 유지율</p>
-          <div className="text-4xl font-black">{retentionProgress}%</div>
-        </div>
-
-        <div className="space-y-4 pt-2">
-          <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-white transition-all duration-1000 ease-out" 
-              style={{ width: `${retentionProgress}%` }}
-            />
-          </div>
-          <p className="text-[11px] leading-relaxed text-white/70 font-medium">
-            현재 매우 안정적인 지식 습득 패턴을 보이고 있습니다. <span className="text-white font-bold">{totalCount}개의 지식</span>이 디지털 뇌에 성공적으로 저장되었습니다.
-          </p>
-        </div>
-
-        <button className="w-full py-3 bg-white text-primary rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-white/90 active:scale-95 transition-all">
-          상세 분석 리포트 보기
-        </button>
-      </div>
-    </div>
-  );
-}
+// PatternAnalysisCard removed as per request
 
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
