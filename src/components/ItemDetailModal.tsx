@@ -1,6 +1,7 @@
 "use client";
 
-import { ArchiveItem } from "@/lib/types";
+import { useState } from "react";
+import { ArchiveItem, SubItem } from "@/lib/types";
 import { useStore } from "@/lib/store";
 
 interface Props {
@@ -16,11 +17,37 @@ const typeLabels: Record<string, string> = {
 };
 
 export function ItemDetailModal({ item, onClose }: Props) {
+  const [newSubValue, setNewSubValue] = useState("");
+  const [showSubInput, setShowSubInput] = useState(false);
   const deleteItem = useStore((s) => s.deleteItem);
+  const updateItem = useStore((s) => s.updateItem);
 
   const isImage = item.type === "image" || (item.content.startsWith("data:image") || (item.type === "url" && /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(item.content)));
   const isUrl = item.type === "url";
   const isYouTube = isUrl && (item.content.includes("youtube.com") || item.content.includes("youtu.be"));
+
+  const checkIsUrl = (val: string) => {
+    try {
+      new URL(val.trim());
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleAddSubItem = async () => {
+    const val = newSubValue.trim();
+    const newSub: SubItem = {
+      id: `sub-${Date.now()}`,
+      title: checkIsUrl(val) ? "Link" : "Note",
+      content: val,
+      type: checkIsUrl(val) ? "url" : "text",
+    };
+    const newSubArr: SubItem[] = [...(item.subItems || []), newSub];
+    await updateItem(item.id, { subItems: newSubArr });
+    setNewSubValue("");
+    setShowSubInput(false);
+  };
 
   const getYouTubeId = (url: string) => {
     const match = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
@@ -93,49 +120,76 @@ export function ItemDetailModal({ item, onClose }: Props) {
               </div>
             )}
 
-            {item.subItems && item.subItems.length > 0 && (
-              <div className="space-y-5 pt-6 border-t border-outline-variant/20">
+            <div className="space-y-5 pt-6 border-t border-outline-variant/20">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-on-surface-variant/40 text-[18px]">account_tree</span>
                   <h4 className="text-[11px] font-black text-on-surface-variant/40 uppercase tracking-widest">연관 리소스</h4>
                 </div>
-                <div className="grid gap-3">
-                  {item.subItems.map((sub) => (
-                    <div key={sub.id} className="group relative">
-                      {sub.type === "url" ? (
-                        <a
-                          href={sub.content}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-between p-5 bg-surface-container-low/50 hover:bg-primary/5 rounded-3xl border border-outline-variant/20 hover:border-primary/30 transition-all group"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-primary-10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                              <span className="material-symbols-outlined text-[20px]">link</span>
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-sm font-bold text-on-surface tracking-tight leading-tight">{sub.title}</span>
-                              <span className="text-[11px] text-on-surface-variant/50 truncate max-w-[280px] mt-1">{sub.content}</span>
-                            </div>
-                          </div>
-                          <span className="material-symbols-outlined text-[20px] text-primary/30 group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                        </a>
-                      ) : (
-                        <div className="p-5 bg-surface-container-low/30 rounded-3xl border border-outline-variant/20">
-                          <div className="flex items-center gap-4 mb-3">
-                            <div className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface-variant/60">
-                              <span className="material-symbols-outlined text-[20px]">notes</span>
-                            </div>
-                            <span className="text-sm font-bold text-on-surface tracking-tight">{sub.title}</span>
-                          </div>
-                          <p className="text-sm text-on-surface-variant/70 font-medium leading-relaxed italic ml-14">"{sub.content}"</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <button
+                  onClick={() => setShowSubInput(!showSubInput)}
+                  className="px-4 py-1.5 rounded-xl bg-primary/10 text-primary text-[11px] font-black hover:bg-primary/20 transition-all flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">{showSubInput ? "close" : "add"}</span>
+                  {showSubInput ? "취소" : "추가"}
+                </button>
               </div>
-            )}
+
+              {showSubInput && (
+                <div className="p-3 bg-surface rounded-[1.5rem] border border-primary/20 animate-fade-in flex gap-2 shadow-sm">
+                  <input
+                    value={newSubValue}
+                    onChange={(e) => setNewSubValue(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddSubItem()}
+                    placeholder="URL 또는 메모를 입력하세요..."
+                    className="flex-1 px-4 py-2 bg-white rounded-xl text-xs font-medium outline-none border border-outline-variant/30 focus:border-primary/50"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleAddSubItem}
+                    className="px-4 bg-primary text-white rounded-xl text-xs font-black uppercase shadow-lg shadow-primary/20 active:scale-95"
+                  >
+                    확인
+                  </button>
+                </div>
+              )}
+
+              <div className="grid gap-3">
+                {item.subItems && item.subItems.map((sub) => (
+                  <div key={sub.id} className="group relative">
+                    {sub.type === "url" ? (
+                      <a
+                        href={sub.content}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-5 bg-surface-container-low/50 hover:bg-primary/5 rounded-3xl border border-outline-variant/20 hover:border-primary/30 transition-all group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-primary-10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                            <span className="material-symbols-outlined text-[20px]">link</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-on-surface tracking-tight leading-tight">{sub.title}</span>
+                            <span className="text-[11px] text-on-surface-variant/50 truncate max-w-[280px] mt-1">{sub.content}</span>
+                          </div>
+                        </div>
+                        <span className="material-symbols-outlined text-[20px] text-primary/30 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                      </a>
+                    ) : (
+                      <div className="p-5 bg-surface-container-low/30 rounded-3xl border border-outline-variant/20">
+                        <div className="flex items-center gap-4 mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface-variant/60">
+                            <span className="material-symbols-outlined text-[20px]">notes</span>
+                          </div>
+                          <span className="text-sm font-bold text-on-surface tracking-tight">{sub.title}</span>
+                        </div>
+                        <p className="text-sm text-on-surface-variant/70 font-medium leading-relaxed italic ml-14">"{sub.content}"</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-8">

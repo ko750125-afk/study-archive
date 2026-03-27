@@ -68,38 +68,18 @@ export default function ArchivePage() {
       </header>
 
       <main className="p-5 md:p-8 pb-24 md:pb-8">
-        <section className="mb-8">
-          <h2
-            className="text-3xl font-extrabold text-[#2b3437] mb-1"
-            style={{ fontFamily: "Manrope, sans-serif" }}
-          >
-            전체 자료
-          </h2>
+        <header className="mb-12">
+          <h1 className="text-4xl font-black text-[#1d1d1f] tracking-tight mb-2">전체 자료</h1>
           <p className="text-[#586064]">총 {items.length}개의 학습 자료</p>
-        </section>
+        </header>
 
-        {/* Filter bar */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="flex gap-2 flex-wrap">
-            {FILTER_OPTIONS.map((f) => (
-              <button
-                key={f.value}
-                onClick={() => setTypeFilter(f.value)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  typeFilter === f.value
-                    ? "bg-[#476363] text-white shadow-sm"
-                    : "bg-white text-[#586064] hover:bg-[#eaeff1] border border-[#e3e9ec]"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-          <div className="sm:ml-auto">
+        {/* Filter bar removed for minimalism */}
+        <div className="flex justify-end mb-6">
+          <div className="relative group">
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="px-3 py-1.5 bg-white border border-[#e3e9ec] rounded-full text-sm text-[#586064] outline-none focus:ring-2 focus:ring-[#476363]/20"
+              className="appearance-none pl-5 pr-10 py-2.5 bg-white border border-[#e3e9ec] rounded-2xl text-sm font-bold text-[#586064] outline-none focus:ring-4 focus:ring-[#476363]/5 focus:border-[#476363]/30 transition-all cursor-pointer shadow-sm"
             >
               {SORT_OPTIONS.map((s) => (
                 <option key={s.value} value={s.value}>
@@ -107,6 +87,9 @@ export default function ArchivePage() {
                 </option>
               ))}
             </select>
+            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#abb3b7] text-[18px] pointer-events-none group-hover:text-[#476363] transition-colors">
+              expand_more
+            </span>
           </div>
         </div>
 

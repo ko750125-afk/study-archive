@@ -9,8 +9,8 @@ export function Sidebar() {
   const items = useStore((s) => s.items);
 
   const menuItems = [
-    { id: "dashboard", icon: "dashboard", label: "대시보드", href: "/" },
-    { id: "archive", icon: "inventory_2", label: "학습할 자료", href: "/archive" },
+    { id: "dashboard", icon: "dashboard", label: "학습할 자료", href: "/" },
+    { id: "archive", icon: "inventory_2", label: "전체 자료", href: "/archive" },
   ];
 
   const bottomItems: { id: string; icon: string; label: string; href: string }[] = [];

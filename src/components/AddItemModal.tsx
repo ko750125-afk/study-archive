@@ -17,8 +17,7 @@ export function AddItemModal({ onClose }: Props) {
   const addItem = useStore((s) => s.addItem);
   const [content, setContent] = useState("");
   const [subItems, setSubItems] = useState<{ title: string; content: string }[]>([]);
-  const [newSubTitle, setNewSubTitle] = useState("");
-  const [newSubContent, setNewSubContent] = useState("");
+  const [newSubValue, setNewSubValue] = useState("");
   const [showSubInput, setShowSubInput] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -92,7 +91,8 @@ export function AddItemModal({ onClose }: Props) {
 
   const handleSave = () => {
     if (!content.trim() && subItems.length === 0) return;
-    const type = detectType(content || (subItems[0]?.content || ""));
+    const firstContent = content.trim() || subItems[0]?.content || "";
+    const type = detectType(firstContent);
     startTransition(async () => {
       await addItem({
         type,
@@ -195,47 +195,48 @@ export function AddItemModal({ onClose }: Props) {
             />
           </div>
 
-          {/* Title and Tag sections removed for minimalist UI */}
-
           <div className="mb-10">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-[11px] font-black text-on-surface-variant/40 uppercase tracking-widest">Related Resources</h4>
               <button
                 onClick={() => setShowSubInput(!showSubInput)}
-                className="text-sm font-black text-white bg-primary px-6 py-3 rounded-2xl hover:bg-primary-600 transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
+                className="text-base font-black text-white bg-primary px-8 py-4 rounded-2xl hover:bg-primary-600 transition-all shadow-xl shadow-primary/20 flex items-center gap-3 active:scale-95"
               >
-                <span className="material-symbols-outlined text-[20px]">{showSubInput ? "close" : "add"}</span>
+                <span className="material-symbols-outlined text-[24px]">{showSubInput ? "close" : "add"}</span>
                 {showSubInput ? "취소" : "리소스 추가"}
               </button>
             </div>
 
             {showSubInput && (
-              <div className="bg-surface-container-low/30 rounded-2xl p-4 mb-4 border border-primary/20 space-y-3 animate-fade-in">
-                <input
-                  value={newSubTitle}
-                  onChange={(e) => setNewSubTitle(e.target.value)}
-                  placeholder="Resource title (e.g. Reference Link)"
-                  className="w-full px-4 py-2 bg-white rounded-xl text-xs font-bold outline-none border border-outline-variant/30 focus:border-primary/30"
-                />
+              <div className="bg-surface-container-low/30 rounded-2xl p-4 mb-4 border border-primary/20 animate-fade-in">
                 <div className="flex gap-2">
                   <input
-                    value={newSubContent}
-                    onChange={(e) => setNewSubContent(e.target.value)}
-                    placeholder="URL or Note..."
-                    className="flex-1 px-4 py-2 bg-white rounded-xl text-xs font-medium outline-none border border-outline-variant/30 focus:border-primary/30"
-                  />
-                  <button
-                    onClick={() => {
-                      if (newSubContent.trim()) {
-                        setSubItems([...subItems, { title: newSubTitle || "Note", content: newSubContent }]);
-                        setNewSubTitle("");
-                        setNewSubContent("");
+                    value={newSubValue}
+                    onChange={(e) => setNewSubValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newSubValue.trim()) {
+                        const val = newSubValue.trim();
+                        setSubItems([...subItems, { title: isUrl(val) ? "Link" : "Note", content: val }]);
+                        setNewSubValue("");
                         setShowSubInput(false);
                       }
                     }}
-                    className="px-4 bg-primary text-white rounded-xl text-xs font-black uppercase"
+                    placeholder="URL 또는 메모를 입력하세요..."
+                    className="flex-1 px-5 py-3 bg-white rounded-xl text-sm font-medium outline-none border border-outline-variant/30 focus:border-primary/50 shadow-sm"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => {
+                      if (newSubValue.trim()) {
+                        const val = newSubValue.trim();
+                        setSubItems([...subItems, { title: isUrl(val) ? "Link" : "Note", content: val }]);
+                        setNewSubValue("");
+                        setShowSubInput(false);
+                      }
+                    }}
+                    className="px-6 bg-primary text-white rounded-xl text-sm font-black uppercase shadow-lg shadow-primary/20 active:scale-95 transition-all"
                   >
-                    ADD
+                    추가
                   </button>
                 </div>
               </div>
