@@ -16,11 +16,21 @@ const typeLabels: Record<string, string> = {
   notion: "문서 도구",
 };
 
-export function ItemDetailModal({ item, onClose }: Props) {
-  const [newSubValue, setNewSubValue] = useState("");
-  const [showSubInput, setShowSubInput] = useState(false);
+export function ItemDetailModal({ item: initialItem, onClose }: Props) {
   const deleteItem = useStore((s) => s.deleteItem);
   const updateItem = useStore((s) => s.updateItem);
+  
+  // Reactivity fix: Get the latest item from the store
+  const storeItems = useStore((s) => s.items);
+  const item = storeItems.find((i) => i.id === initialItem.id) || initialItem;
+
+  const [newSubValue, setNewSubValue] = useState("");
+  const [showSubInput, setShowSubInput] = useState(false);
+  const [editingSubId, setEditingSubId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [isEditingMain, setIsEditingMain] = useState(false);
+  const [editMainTitle, setEditMainTitle] = useState(item.title);
+  const [editMainContent, setEditMainContent] = useState(item.content);
 
   const isImage = item.type === "image" || (item.content.startsWith("data:image") || (item.type === "url" && /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(item.content)));
   const isUrl = item.type === "url";
@@ -37,6 +47,8 @@ export function ItemDetailModal({ item, onClose }: Props) {
 
   const handleAddSubItem = async () => {
     const val = newSubValue.trim();
+    if (!val) return;
+    
     const newSub: SubItem = {
       id: `sub-${Date.now()}`,
       title: checkIsUrl(val) ? "Link" : "Note",
@@ -47,6 +59,31 @@ export function ItemDetailModal({ item, onClose }: Props) {
     await updateItem(item.id, { subItems: newSubArr });
     setNewSubValue("");
     setShowSubInput(false);
+  };
+
+  const handleUpdateSubItem = async (subId: string) => {
+    const val = editValue.trim();
+    if (!val) return;
+    const newSubArr = (item.subItems || []).map((s) => 
+      s.id === subId ? { ...s, content: val, title: checkIsUrl(val) ? "Link" : "Note", type: (checkIsUrl(val) ? "url" : "text") as any } : s
+    );
+    await updateItem(item.id, { subItems: newSubArr });
+    setEditingSubId(null);
+    setEditValue("");
+  };
+
+  const handleUpdateMain = async () => {
+    await updateItem(item.id, {
+      title: editMainTitle,
+      content: editMainContent,
+    });
+    setIsEditingMain(false);
+  };
+
+  const handleDeleteSubItem = async (subId: string) => {
+    if (!confirm("이 리소스를 삭제하시겠습니까?")) return;
+    const newSubArr = (item.subItems || []).filter((s) => s.id !== subId);
+    await updateItem(item.id, { subItems: newSubArr });
   };
 
   const getYouTubeId = (url: string) => {
@@ -70,16 +107,37 @@ export function ItemDetailModal({ item, onClose }: Props) {
         </div>
 
         <div className="p-8 md:p-10">
-          <div className="flex items-start justify-between gap-6 mb-8">
+          <div className="flex items-start justify-between gap-6 mb-8 group/header">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-[10px] uppercase tracking-[0.2em] font-black text-primary bg-primary-10/40 backdrop-blur-md px-3 py-1 rounded-lg ring-1 ring-primary/20">
                   {typeLabels[item.type] || "보관 자료"}
                 </span>
+                {!isEditingMain && (
+                  <button
+                    onClick={() => {
+                      setIsEditingMain(true);
+                      setEditMainTitle(item.title);
+                      setEditMainContent(item.content);
+                    }}
+                    className="opacity-0 group-hover/header:opacity-100 transition-opacity p-1.5 rounded-lg bg-surface hover:bg-primary/5 text-primary"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                  </button>
+                )}
               </div>
-              <h2 className="text-3xl font-black text-on-surface leading-tight tracking-tight">
-                {item.title || "제목 없는 자료"}
-              </h2>
+              {isEditingMain ? (
+                <input
+                  value={editMainTitle}
+                  onChange={(e) => setEditMainTitle(e.target.value)}
+                  className="w-full text-2xl font-black text-on-surface bg-transparent border-b-2 border-primary outline-none py-1 mb-4"
+                  autoFocus
+                />
+              ) : (
+                <h2 className="text-3xl font-black text-on-surface leading-tight tracking-tight">
+                  {item.title || "제목 없는 자료"}
+                </h2>
+              )}
             </div>
             <button
               onClick={onClose}
@@ -112,11 +170,36 @@ export function ItemDetailModal({ item, onClose }: Props) {
             )}
 
             {!isImage && !isYouTube && (
-              <div className="bg-surface-container-lowest/50 rounded-[2.5rem] p-8 border border-outline-variant/30 relative">
+              <div className="bg-surface-container-lowest/50 rounded-[2.5rem] p-8 border border-outline-variant/30 relative group/content">
                 <span className="absolute top-4 right-6 material-symbols-outlined text-on-surface-variant/20 text-[60px] opacity-10">format_quote</span>
-                <pre className="text-base text-on-surface whitespace-pre-wrap font-medium leading-relaxed max-h-80 overflow-y-auto relative z-10 custom-scrollbar">
-                  {item.content || "내용이 없습니다."}
-                </pre>
+                {isEditingMain ? (
+                  <textarea
+                    value={editMainContent}
+                    onChange={(e) => setEditMainContent(e.target.value)}
+                    className="w-full h-44 bg-white/50 p-4 rounded-2xl text-base text-on-surface outline-none border border-primary/30 resize-none font-medium"
+                  />
+                ) : (
+                  <pre className="text-base text-on-surface whitespace-pre-wrap font-medium leading-relaxed max-h-80 overflow-y-auto relative z-10 custom-scrollbar">
+                    {item.content || "내용이 없습니다."}
+                  </pre>
+                )}
+              </div>
+            )}
+
+            {isEditingMain && (
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={handleUpdateMain}
+                  className="px-6 py-2 bg-primary text-white rounded-xl text-sm font-black shadow-lg shadow-primary/20"
+                >
+                  기본 정보 저장
+                </button>
+                <button
+                  onClick={() => setIsEditingMain(false)}
+                  className="px-6 py-2 bg-surface text-on-surface-variant rounded-xl text-sm font-bold"
+                >
+                  취소
+                </button>
               </div>
             )}
 
@@ -157,7 +240,47 @@ export function ItemDetailModal({ item, onClose }: Props) {
               <div className="grid gap-3">
                 {item.subItems && item.subItems.map((sub) => (
                   <div key={sub.id} className="group relative">
-                    {sub.type === "url" ? (
+                    <div className="absolute -right-2 -top-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                      <button
+                        onClick={() => {
+                          setEditingSubId(sub.id);
+                          setEditValue(sub.content);
+                        }}
+                        className="w-8 h-8 bg-white text-primary rounded-full shadow-lg border border-primary/10 flex items-center justify-center hover:bg-primary/5"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSubItem(sub.id)}
+                        className="w-8 h-8 bg-white text-red-500 rounded-full shadow-lg border border-red-50 flex items-center justify-center hover:bg-red-50"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    </div>
+
+                    {editingSubId === sub.id ? (
+                      <div className="p-4 bg-surface rounded-[1.5rem] border border-primary/30 flex gap-2 shadow-inner">
+                        <input
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleUpdateSubItem(sub.id)}
+                          className="flex-1 px-4 py-2 bg-white rounded-xl text-xs font-medium outline-none border border-outline-variant/30 focus:border-primary/50"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleUpdateSubItem(sub.id)}
+                          className="px-4 bg-primary text-white rounded-xl text-xs font-black"
+                        >
+                          저장
+                        </button>
+                        <button
+                          onClick={() => setEditingSubId(null)}
+                          className="px-3 bg-surface text-on-surface-variant rounded-xl text-xs font-bold"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    ) : sub.type === "url" ? (
                       <a
                         href={sub.content}
                         target="_blank"

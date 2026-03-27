@@ -15,14 +15,13 @@ interface Props {
 
 export function AddItemModal({ onClose }: Props) {
   const addItem = useStore((s) => s.addItem);
+  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [subItems, setSubItems] = useState<{ title: string; content: string }[]>([]);
   const [newSubValue, setNewSubValue] = useState("");
   const [showSubInput, setShowSubInput] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const isUrl = (val: string) => {
     try {
@@ -53,50 +52,16 @@ export function AddItemModal({ onClose }: Props) {
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-    if (!app) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const url = e.target?.result as string;
-        setContent(url);
-      };
-      reader.readAsDataURL(file);
-      return;
-    }
-    setIsAnalyzing(true);
-    try {
-      const storage = getStorage(app);
-      const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-      setContent(url);
-    } catch {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setContent(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file?.type.startsWith("image/")) handleImageUpload(file);
-  };
-
-
   const handleSave = () => {
     if (!content.trim() && subItems.length === 0) return;
     const firstContent = content.trim() || subItems[0]?.content || "";
     const type = detectType(firstContent);
+    const finalTitle = title.trim() || content.slice(0, 40) || subItems[0]?.title || "New Material";
+    
     startTransition(async () => {
       await addItem({
         type,
-        title: content.slice(0, 40) || subItems[0]?.title || "New Material",
+        title: finalTitle,
         content: content.trim(),
         tags: [],
         subItems: subItems.map((s, i) => ({
@@ -143,56 +108,31 @@ export function AddItemModal({ onClose }: Props) {
             </button>
           </div>
 
-          <div
-            className={`relative mb-6 rounded-[2rem] border-2 transition-all duration-500 overflow-hidden ${
-              dragOver
-                ? "border-primary bg-primary/5 ring-8 ring-primary/5"
-                : "border-outline-variant/30 bg-surface-container-lowest focus-within:border-primary/40 focus-within:ring-8 focus-within:ring-primary/5"
-            }`}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
-          >
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              onPaste={handlePaste}
-              placeholder="Paste a link, image URL, or drop files here..."
-              className="w-full h-44 p-6 bg-transparent resize-none outline-none text-on-surface placeholder:text-on-surface-variant/30 text-base font-medium leading-relaxed"
-            />
-            
-            {isAnalyzing && (
-              <div className="absolute inset-x-0 bottom-0 py-3 px-6 bg-primary/10 backdrop-blur-md flex items-center gap-3 text-xs font-bold text-primary animate-slide-up">
-                <div className="w-4 h-4 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-                Refining metadata...
-              </div>
-            )}
-
-            <div className="flex items-center justify-between px-6 pb-4">
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-primary hover:text-primary-600 transition-colors bg-primary/5 px-4 py-2 rounded-xl"
-              >
-                <span className="material-symbols-outlined text-[18px]">image</span>
-                Pick Image
-              </button>
-              <div className="flex items-center gap-2 opacity-30">
-                <span className="material-symbols-outlined text-[16px]">terminal</span>
-                <span className="text-[10px] font-bold uppercase tracking-widest">
-                  {dragOver ? "READY TO DROP" : "SMART DETECTION ACTIVE"}
-                </span>
-              </div>
-            </div>
+          <div className="mb-4">
             <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleImageUpload(file);
-              }}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="제목 (선택사항)"
+              className="w-full px-6 py-4 bg-surface-container-low/50 rounded-2xl text-sm font-bold text-on-surface border border-outline-variant/20 focus:border-primary/40 focus:ring-4 focus:ring-primary/5 outline-none transition-all mb-4"
             />
+            <div
+              className="relative rounded-[2rem] border-2 border-outline-variant/30 bg-surface-container-lowest focus-within:border-primary/40 focus-within:ring-8 focus-within:ring-primary/5 transition-all duration-500 overflow-hidden"
+            >
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                onPaste={handlePaste}
+                placeholder="Paste a link, image URL, or notes here..."
+                className="w-full h-44 p-6 bg-transparent resize-none outline-none text-on-surface placeholder:text-on-surface-variant/30 text-base font-medium leading-relaxed"
+              />
+              
+              {isAnalyzing && (
+                <div className="absolute inset-x-0 bottom-0 py-3 px-6 bg-primary/10 backdrop-blur-md flex items-center gap-3 text-xs font-bold text-primary animate-slide-up">
+                  <div className="w-4 h-4 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                  Refining metadata...
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mb-10">
