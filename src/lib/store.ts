@@ -48,12 +48,14 @@ export const useStore = create<StoreState>()(
           id: genId(),
           createdAt: now,
           updatedAt: now,
+          isPriority: false,
         };
 
         if (db) {
           try {
             const ref = await addDoc(collection(db, "archive"), {
               ...itemData,
+              isPriority: false,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
             });

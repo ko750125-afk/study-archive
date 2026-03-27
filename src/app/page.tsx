@@ -16,9 +16,11 @@ export default function DashboardPage() {
 
   const filtered = items.filter(
     (i) =>
-      !search ||
-      i.title.toLowerCase().includes(search.toLowerCase()) ||
-      i.content.toLowerCase().includes(search.toLowerCase())
+      i.isPriority && (
+        !search ||
+        i.title.toLowerCase().includes(search.toLowerCase()) ||
+        i.content.toLowerCase().includes(search.toLowerCase())
+      )
   ).sort((a, b) => b.createdAt - a.createdAt);
 
   return (
@@ -125,24 +127,33 @@ export default function DashboardPage() {
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] text-center animate-fade-in">
-      <div className="w-24 h-24 rounded-[2.5rem] bg-primary-50 flex items-center justify-center mb-8 shadow-inner ring-1 ring-primary/10">
-        <span className="material-symbols-outlined text-primary text-[48px] material-symbols-filled">
-          auto_stories
+      <div className="w-24 h-24 rounded-[2.5rem] bg-amber-50 flex items-center justify-center mb-8 shadow-inner ring-1 ring-amber-200/50">
+        <span className="material-symbols-outlined text-amber-500 text-[48px] material-symbols-filled">
+          star
         </span>
       </div>
       <h3 className="text-3xl font-black text-on-surface mb-3 tracking-tight">
-        아직 보관함이 비어있습니다
+        학습할 자료가 없습니다
       </h3>
       <p className="text-on-surface-variant font-medium mb-10 max-w-sm leading-relaxed opacity-60">
-        학습한 영상, 블로그 링크, 혹은 떠오르는 아이디어를 캡처해 보세요. 당신만의 지식 아카이브가 이곳에서 시작됩니다.
+        보관된 자료 중 '우선학습'으로 선택된 자료가 없습니다. 전체 자료에서 별표(★)를 눌러 학습할 자료를 추가해 보세요.
       </p>
-      <button
-        onClick={onAdd}
-        className="flex items-center gap-3 px-10 py-5 bg-primary text-white rounded-[2rem] font-black uppercase tracking-wider text-xs hover:bg-primary-600 active:scale-95 transition-all shadow-2xl shadow-primary/30"
-      >
-        <span className="material-symbols-outlined text-[20px]">add</span>
-        첫 자료 추가하기
-      </button>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <button
+          onClick={onAdd}
+          className="flex items-center gap-3 px-10 py-5 bg-primary text-white rounded-[2rem] font-black uppercase tracking-wider text-xs hover:bg-primary-600 active:scale-95 transition-all shadow-2xl shadow-primary/30"
+        >
+          <span className="material-symbols-outlined text-[20px]">add</span>
+          새 자료 추가
+        </button>
+        <a
+          href="/archive"
+          className="flex items-center gap-3 px-10 py-5 bg-surface-container-high text-on-surface rounded-[2rem] font-black uppercase tracking-wider text-xs hover:bg-surface-container active:scale-95 transition-all border border-outline-variant/30"
+        >
+          <span className="material-symbols-outlined text-[20px]">inventory</span>
+          전체 자료 보기
+        </a>
+      </div>
     </div>
   );
 }

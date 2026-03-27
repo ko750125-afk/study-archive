@@ -1,6 +1,7 @@
 "use client";
 
 import { ArchiveItem } from "@/lib/types";
+import { useStore } from "@/lib/store";
 
 interface ItemCardProps {
   item: ArchiveItem;
@@ -8,6 +9,7 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item, onOpen }: ItemCardProps) {
+  const deleteItem = useStore((s) => s.deleteItem);
   const typeIcons: Record<string, string> = {
     url: "language",
     image: "image",
@@ -22,11 +24,26 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
     notion: "text-emerald-500 bg-emerald-500/10",
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("정말로 이 지식을 삭제하시겠습니까?")) {
+      deleteItem(item.id);
+    }
+  };
+
   return (
     <div
       onClick={() => onOpen(item)}
       className="group relative flex flex-col h-full bg-white rounded-[2.5rem] p-7 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] hover:-translate-y-1 border border-outline-variant/30 hover:border-primary/20 cursor-pointer overflow-hidden animate-fade-in"
     >
+      {/* Delete Button (Hover) */}
+      <button
+        onClick={handleDelete}
+        className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-md text-red-500 rounded-2xl shadow-lg border border-red-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-red-50 hover:scale-110 active:scale-90"
+      >
+        <span className="material-symbols-outlined text-[20px]">delete</span>
+      </button>
+
       {/* Decorative gradient background on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
@@ -38,7 +55,7 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
           </span>
         </div>
         
-        <div className="text-right">
+        <div className="text-right group-hover:opacity-0 transition-opacity duration-300">
           <p className="text-[9px] font-black tracking-[0.2em] text-on-surface-variant/30 uppercase mb-0.5">
             Captured
           </p>
@@ -65,13 +82,20 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
           {/* Tags removed for minimalist UI */}
         </div>
 
-        {/* Sub-items Indicator */}
-        {item.subItems && item.subItems.length > 0 && (
-          <div className="flex items-center gap-1.5 text-primary bg-primary-50 px-3 py-1.5 rounded-xl ring-1 ring-primary/10">
-            <span className="material-symbols-outlined text-[16px] material-symbols-filled">account_tree</span>
-            <span className="text-[11px] font-black">{item.subItems.length}</span>
-          </div>
-        )}
+        {/* Sub-items Indicator & Priority Indicator */}
+        <div className="flex items-center gap-2">
+          {item.isPriority && (
+            <div className="flex items-center gap-1.5 text-amber-500 bg-amber-50 px-3 py-1.5 rounded-xl ring-1 ring-amber-200/50">
+              <span className="material-symbols-outlined text-[16px] material-symbols-filled">star</span>
+            </div>
+          )}
+          {item.subItems && item.subItems.length > 0 && (
+            <div className="flex items-center gap-1.5 text-primary bg-primary-50 px-3 py-1.5 rounded-xl ring-1 ring-primary/10">
+              <span className="material-symbols-outlined text-[16px] material-symbols-filled">account_tree</span>
+              <span className="text-[11px] font-black">{item.subItems.length}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Action Hover Indicator */}

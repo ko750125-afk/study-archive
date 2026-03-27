@@ -18,4 +18,5 @@ export interface ArchiveItem {
   subItems?: SubItem[];
   createdAt: number;
   updatedAt: number;
+  isPriority?: boolean;
 }

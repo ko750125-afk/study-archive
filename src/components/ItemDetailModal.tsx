@@ -72,6 +72,10 @@ export function ItemDetailModal({ item: initialItem, onClose }: Props) {
     setEditValue("");
   };
 
+  const togglePriority = async () => {
+    await updateItem(item.id, { isPriority: !item.isPriority });
+  };
+
   const handleUpdateMain = async () => {
     await updateItem(item.id, {
       title: editMainTitle,
@@ -139,12 +143,27 @@ export function ItemDetailModal({ item: initialItem, onClose }: Props) {
                 </h2>
               )}
             </div>
-            <button
-              onClick={onClose}
-              className="w-12 h-12 flex items-center justify-center rounded-2xl hover:bg-surface-container text-on-surface-variant transition-all hover:rotate-90 duration-300 shadow-sm"
-            >
-              <span className="material-symbols-outlined text-[24px]">close</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={togglePriority}
+                className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all border shadow-sm ${
+                  item.isPriority 
+                  ? "bg-amber-50 text-amber-500 border-amber-200" 
+                  : "bg-surface-container/50 text-on-surface-variant border-outline-variant/20 hover:bg-surface-container hover:text-primary"
+                }`}
+                title={item.isPriority ? "우선학습 해제" : "우선학습 추가"}
+              >
+                <span className={`material-symbols-outlined text-[24px] ${item.isPriority ? "material-symbols-filled" : ""}`}>
+                  {item.isPriority ? "star" : "star_outline"}
+                </span>
+              </button>
+              <button
+                onClick={onClose}
+                className="w-12 h-12 flex items-center justify-center rounded-2xl hover:bg-surface-container text-on-surface-variant transition-all hover:rotate-90 duration-300 shadow-sm border border-outline-variant/10"
+              >
+                <span className="material-symbols-outlined text-[24px]">close</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-6 mb-10">
