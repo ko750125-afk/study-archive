@@ -55,6 +55,8 @@ export const useStore = create<StoreState>()(
           try {
             const ref = await addDoc(collection(db, "archive"), {
               ...itemData,
+              thumbnail: itemData.thumbnail || "",
+              description: itemData.description || "",
               isPriority: false,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
@@ -126,6 +128,7 @@ export const useStore = create<StoreState>()(
                 subItems: data.subItems || [],
                 createdAt: toMs(data.createdAt),
                 updatedAt: toMs(data.updatedAt),
+                isPriority: data.isPriority || false,
               };
             });
             set({ items, isLoaded: true, isConnected: true });

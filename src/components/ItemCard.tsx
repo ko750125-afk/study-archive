@@ -40,7 +40,7 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
       {/* Delete Button (Hover) */}
       <button
         onClick={handleDelete}
-        className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-md text-red-500 rounded-2xl shadow-lg border border-red-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-red-50 hover:scale-110 active:scale-90"
+        className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-md text-red-500 rounded-2xl shadow-lg border border-red-50 flex items-center justify-center transition-all z-20 hover:bg-red-50 hover:scale-110 active:scale-90"
       >
         <span className="material-symbols-outlined text-[20px]">delete</span>
       </button>
