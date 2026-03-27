@@ -11,7 +11,6 @@ export function Sidebar() {
   const menuItems = [
     { id: "dashboard", icon: "dashboard", label: "대시보드", href: "/" },
     { id: "archive", icon: "inventory_2", label: "학습할 자료", href: "/archive" },
-    { id: "tags", icon: "tag", label: "태그 관리", href: "/tags" },
   ];
 
   const bottomItems: { id: string; icon: string; label: string; href: string }[] = [];

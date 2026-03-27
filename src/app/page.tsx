@@ -18,8 +18,7 @@ export default function DashboardPage() {
     (i) =>
       !search ||
       i.title.toLowerCase().includes(search.toLowerCase()) ||
-      i.content.toLowerCase().includes(search.toLowerCase()) ||
-      i.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
+      i.content.toLowerCase().includes(search.toLowerCase())
   ).sort((a, b) => b.createdAt - a.createdAt);
 
   return (

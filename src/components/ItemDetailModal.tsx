@@ -150,19 +150,7 @@ export function ItemDetailModal({ item, onClose }: Props) {
             )}
 
             <div className="flex flex-wrap items-center justify-between gap-6 pt-8 border-t border-outline-variant/20">
-              {item.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {item.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="text-[11px] px-3.5 py-1.5 bg-surface-container-high text-primary/70 font-black rounded-lg border border-outline-variant/10 uppercase tracking-wider"
-                    >
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-              )}
-
+              {/* Tags removed for minimalist UI */}
               <div className="text-[10px] font-black text-on-surface-variant/30 uppercase tracking-[0.2em] flex items-center gap-2">
                 <span className="material-symbols-outlined text-[16px]">history</span>
                 {new Date(item.createdAt).toLocaleDateString("ko-KR", {

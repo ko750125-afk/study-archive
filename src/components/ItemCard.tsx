@@ -62,20 +62,7 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
       {/* Footer: Tags & Indicators */}
       <div className="mt-8 pt-6 border-t border-outline-variant/10 flex items-center justify-between relative z-10">
         <div className="flex flex-wrap gap-1.5 max-w-[70%]">
-          {item.tags.length > 0 ? (
-            item.tags.slice(0, 2).map((tag) => (
-              <span key={tag} className="text-[10px] font-bold text-primary/60 bg-primary-50/50 px-2.5 py-1 rounded-lg uppercase tracking-wider border border-primary/5">
-                #{tag}
-              </span>
-            ))
-          ) : (
-            <span className="text-[10px] font-bold text-on-surface-variant/20 italic">No Tags</span>
-          )}
-          {item.tags.length > 2 && (
-            <span className="text-[10px] font-black text-on-surface-variant/30 px-1">
-              +{item.tags.length - 2}
-            </span>
-          )}
+          {/* Tags removed for minimalist UI */}
         </div>
 
         {/* Sub-items Indicator */}

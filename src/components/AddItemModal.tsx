@@ -7,7 +7,7 @@ import { ItemType } from "@/lib/types";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { app } from "@/lib/firebase";
 
-const TAG_SUGGESTIONS = ["디자인", "개발", "기획", "마케팅", "AI", "비즈니스", "학습", "영상", "아티클"];
+// Tag suggestions removed for minimalist UI
 
 interface Props {
   onClose: () => void;
@@ -16,9 +16,6 @@ interface Props {
 export function AddItemModal({ onClose }: Props) {
   const addItem = useStore((s) => s.addItem);
   const [content, setContent] = useState("");
-  const [title, setTitle] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
   const [subItems, setSubItems] = useState<{ title: string; content: string }[]>([]);
   const [newSubTitle, setNewSubTitle] = useState("");
   const [newSubContent, setNewSubContent] = useState("");
@@ -50,10 +47,7 @@ export function AddItemModal({ onClose }: Props) {
     if (isUrl(pasted)) {
       setIsAnalyzing(true);
       try {
-        const meta = await fetchMetadata(pasted.trim());
-        if (meta) {
-          if (!title) setTitle(meta.title || "");
-        }
+        await fetchMetadata(pasted.trim());
       } finally {
         setIsAnalyzing(false);
       }
@@ -66,7 +60,6 @@ export function AddItemModal({ onClose }: Props) {
       reader.onload = (e) => {
         const url = e.target?.result as string;
         setContent(url);
-        if (!title) setTitle(file.name.replace(/\.[^.]+$/, ""));
       };
       reader.readAsDataURL(file);
       return;
@@ -78,7 +71,6 @@ export function AddItemModal({ onClose }: Props) {
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
       setContent(url);
-      if (!title) setTitle(file.name.replace(/\.[^.]+$/, ""));
     } catch {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -97,21 +89,16 @@ export function AddItemModal({ onClose }: Props) {
     if (file?.type.startsWith("image/")) handleImageUpload(file);
   };
 
-  const addTag = (tag: string) => {
-    const cleaned = tag.trim().replace(/^#/, "");
-    if (cleaned && !tags.includes(cleaned)) setTags([...tags, cleaned]);
-    setTagInput("");
-  };
 
   const handleSave = () => {
-    if (!content.trim() && !title.trim()) return;
-    const type = detectType(content);
+    if (!content.trim() && subItems.length === 0) return;
+    const type = detectType(content || (subItems[0]?.content || ""));
     startTransition(async () => {
       await addItem({
         type,
-        title: title || content.slice(0, 60),
+        title: content.slice(0, 40) || subItems[0]?.title || "New Material",
         content: content.trim(),
-        tags,
+        tags: [],
         subItems: subItems.map((s, i) => ({
           id: `sub-${Date.now()}-${i}`,
           title: s.title,
@@ -144,9 +131,9 @@ export function AddItemModal({ onClose }: Props) {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl font-black text-primary tracking-tight">
-                Capture Insight
+                자료 보관하기
               </h2>
-              <p className="text-xs font-bold text-on-surface-variant opacity-50 uppercase tracking-widest mt-1">New Archive Entry</p>
+              <p className="text-xs font-bold text-on-surface-variant opacity-50 uppercase tracking-widest mt-1">간편 저장소</p>
             </div>
             <button
               onClick={onClose}
@@ -208,71 +195,17 @@ export function AddItemModal({ onClose }: Props) {
             />
           </div>
 
-          <div className="relative mb-6 group">
-            <span className="absolute left-6 top-1/2 -translate-y-1/2 material-symbols-outlined text-[20px] text-on-surface-variant/30 group-focus-within:text-primary transition-colors">
-              title
-            </span>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add a descriptive title..."
-              className="w-full pl-14 pr-6 py-4 rounded-2xl bg-surface-container-low/50 border border-outline-variant/30 text-sm font-bold text-on-surface placeholder:text-on-surface-variant/30 outline-none focus:bg-white focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all"
-            />
-          </div>
-
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-2 mb-4">
-              {tags.map((t) => (
-                <span
-                  key={t}
-                  className="flex items-center gap-1.5 text-xs px-4 py-2 bg-primary/10 text-primary rounded-xl font-bold ring-1 ring-primary/20"
-                >
-                  #{t}
-                  <button 
-                    onClick={() => setTags(tags.filter((x) => x !== t))}
-                    className="hover:scale-125 transition-transform"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">close</span>
-                  </button>
-                </span>
-              ))}
-              <div className="relative flex-grow min-w-[140px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-[16px] material-symbols-outlined">tag</span>
-                <input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === ",") {
-                      e.preventDefault();
-                      addTag(tagInput);
-                    }
-                  }}
-                  placeholder="New tag..."
-                  className="w-full text-xs pl-9 pr-4 py-2.5 bg-surface-container-highest/50 rounded-xl outline-none text-on-surface font-bold placeholder:text-on-surface-variant/30 focus:bg-white transition-all border border-transparent focus:border-primary/20"
-                />
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {TAG_SUGGESTIONS.filter((t) => !tags.includes(t)).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => addTag(t)}
-                  className="text-[10px] px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/20 text-on-surface-variant font-bold rounded-lg hover:bg-primary hover:text-white hover:border-primary transition-all uppercase tracking-wider"
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Title and Tag sections removed for minimalist UI */}
 
           <div className="mb-10">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-[11px] font-black text-on-surface-variant/40 uppercase tracking-widest">Related Resources</h4>
               <button
                 onClick={() => setShowSubInput(!showSubInput)}
-                className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all"
+                className="text-sm font-black text-white bg-primary px-6 py-3 rounded-2xl hover:bg-primary-600 transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
               >
-                {showSubInput ? "CANCEL" : "+ ADD RESOURCE"}
+                <span className="material-symbols-outlined text-[20px]">{showSubInput ? "close" : "add"}</span>
+                {showSubInput ? "취소" : "리소스 추가"}
               </button>
             </div>
 
@@ -328,7 +261,7 @@ export function AddItemModal({ onClose }: Props) {
 
           <button
             onClick={handleSave}
-            disabled={isPending || (!content.trim() && !title.trim())}
+            disabled={isPending || !content.trim()}
             className="w-full py-5 bg-primary text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary-600 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-2xl shadow-primary/40 group overflow-hidden relative"
           >
             <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12" />
