@@ -10,6 +10,7 @@ interface ItemCardProps {
 
 export function ItemCard({ item, onOpen }: ItemCardProps) {
   const deleteItem = useStore((s) => s.deleteItem);
+  const updateItem = useStore((s) => s.updateItem);
   const typeIcons: Record<string, string> = {
     url: "language",
     image: "image",
@@ -84,11 +85,23 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
 
         {/* Sub-items Indicator & Priority Indicator */}
         <div className="flex items-center gap-2">
-          {item.isPriority && (
-            <div className="flex items-center gap-1.5 text-amber-500 bg-amber-50 px-3 py-1.5 rounded-xl ring-1 ring-amber-200/50">
-              <span className="material-symbols-outlined text-[16px] material-symbols-filled">star</span>
-            </div>
-          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              updateItem(item.id, { isPriority: !item.isPriority });
+            }}
+            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all border ${
+              item.isPriority 
+              ? "bg-amber-50 text-amber-500 border-amber-200" 
+              : "bg-surface-container/50 text-on-surface-variant/40 border-outline-variant/10 hover:bg-amber-50 hover:text-amber-500 hover:border-amber-200"
+            }`}
+            title={item.isPriority ? "우선학습 해제" : "우선학습 추가"}
+          >
+            <span className={`material-symbols-outlined text-[20px] ${item.isPriority ? "material-symbols-filled" : ""}`}>
+              {item.isPriority ? "star" : "star_outline"}
+            </span>
+          </button>
+          
           {item.subItems && item.subItems.length > 0 && (
             <div className="flex items-center gap-1.5 text-primary bg-primary-50 px-3 py-1.5 rounded-xl ring-1 ring-primary/10">
               <span className="material-symbols-outlined text-[16px] material-symbols-filled">account_tree</span>
