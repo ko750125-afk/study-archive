@@ -2,6 +2,7 @@
 
 import { ArchiveItem } from "@/lib/types";
 import { useStore } from "@/lib/store";
+import { useState, useRef, useEffect } from "react";
 
 interface ItemCardProps {
   item: ArchiveItem;
@@ -11,6 +12,9 @@ interface ItemCardProps {
 export function ItemCard({ item, onOpen }: ItemCardProps) {
   const deleteItem = useStore((s) => s.deleteItem);
   const updateItem = useStore((s) => s.updateItem);
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempTitle, setTempTitle] = useState(item.title);
+  const inputRef = useRef<HTMLInputElement>(null);
   const typeIcons: Record<string, string> = {
     url: "language",
     image: "image",
@@ -31,6 +35,33 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
       deleteItem(item.id);
     }
   };
+
+  const handleTitleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+  };
+
+  const handleTitleSubmit = async () => {
+    if (tempTitle !== item.title) {
+      await updateItem(item.id, { title: tempTitle });
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleTitleSubmit();
+    } else if (e.key === "Escape") {
+      setTempTitle(item.title);
+      setIsEditing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
 
   return (
     <div
@@ -68,9 +99,26 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
 
       {/* Content Area */}
       <div className="flex-grow space-y-3 relative z-10">
-        <h4 className="text-xl font-black text-on-surface leading-[1.3] tracking-tight group-hover:text-primary transition-colors line-clamp-2">
-          {item.title || "제목 없는 자료"}
-        </h4>
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={tempTitle}
+            onChange={(e) => setTempTitle(e.target.value)}
+            onBlur={handleTitleSubmit}
+            onKeyDown={handleKeyDown}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full text-xl font-black text-primary bg-primary/5 border-b-2 border-primary outline-none py-1 px-2 rounded-lg transition-all"
+          />
+        ) : (
+          <h4 
+            onClick={handleTitleClick}
+            className="text-xl font-black text-on-surface leading-[1.3] tracking-tight group-hover:text-primary transition-colors line-clamp-2 hover:bg-primary/5 rounded-lg px-2 -mx-2 cursor-text"
+            title="클릭하여 제목 수정"
+          >
+            {item.title || "제목 없는 자료"}
+          </h4>
+        )}
         
         <p className="text-[13px] text-on-surface-variant/60 leading-relaxed line-clamp-3 font-medium">
           {item.content || "추가 설명이 없습니다."}
@@ -83,8 +131,31 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
           {/* Tags removed for minimalist UI */}
         </div>
 
-        {/* Sub-items Indicator & Priority Indicator */}
+        {/* Sub-items Indicator & Priority & Complete Indicator */}
         <div className="flex items-center gap-2">
+          {/* 학습완료 버튼: 클릭 시 학습완료 상태로 전환 */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              updateItem(item.id, {
+                isCompleted: !item.isCompleted,
+                // 학습완료 시 즉즐찾기 해제 (학습할자료 다에서 자동 제외)
+                isPriority: item.isCompleted ? item.isPriority : false,
+              });
+            }}
+            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all border ${
+              item.isCompleted
+              ? "bg-emerald-50 text-emerald-500 border-emerald-200"
+              : "bg-surface-container/50 text-on-surface-variant/40 border-outline-variant/10 hover:bg-emerald-50 hover:text-emerald-500 hover:border-emerald-200"
+            }`}
+            title={item.isCompleted ? "학습완료 취소" : "학습완료로 이동"}
+          >
+            <span className={`material-symbols-outlined text-[20px] ${item.isCompleted ? "material-symbols-filled" : ""}`}>
+              {item.isCompleted ? "check_circle" : "check_circle"}
+            </span>
+          </button>
+
+          {/* 즉즐찾기(학습할자료) 버튼 */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -95,7 +166,7 @@ export function ItemCard({ item, onOpen }: ItemCardProps) {
               ? "bg-amber-50 text-amber-500 border-amber-200" 
               : "bg-surface-container/50 text-on-surface-variant/40 border-outline-variant/10 hover:bg-amber-50 hover:text-amber-500 hover:border-amber-200"
             }`}
-            title={item.isPriority ? "우선학습 해제" : "우선학습 추가"}
+            title={item.isPriority ? "우선학습 해제" : "즐겨찾기 / 학습할자료 추가"}
           >
             <span className={`material-symbols-outlined text-[20px] ${item.isPriority ? "material-symbols-filled" : ""}`}>
               {item.isPriority ? "star" : "star_outline"}

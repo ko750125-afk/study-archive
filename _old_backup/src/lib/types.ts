@@ -19,5 +19,4 @@ export interface ArchiveItem {
   createdAt: number;
   updatedAt: number;
   isPriority?: boolean;
-  isCompleted?: boolean;  // 학습완료 여부
 }

@@ -7,14 +7,6 @@ import { ItemCard } from "@/components/ItemCard";
 import { AddItemModal } from "@/components/AddItemModal";
 import { ItemDetailModal } from "@/components/ItemDetailModal";
 
-const FILTER_OPTIONS: { label: string; value: string }[] = [
-  { label: "전체", value: "all" },
-  { label: "링크", value: "url" },
-  { label: "이미지", value: "image" },
-  { label: "텍스트", value: "text" },
-  { label: "노션", value: "notion" },
-];
-
 const SORT_OPTIONS = [
   { label: "최신순", value: "latest" },
   { label: "오래된 순", value: "oldest" },
@@ -22,7 +14,6 @@ const SORT_OPTIONS = [
 
 export default function ArchivePage() {
   const items = useStore((s) => s.items);
-  const [typeFilter, setTypeFilter] = useState("all");
   const [sort, setSort] = useState("latest");
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -31,18 +22,11 @@ export default function ArchivePage() {
   const filtered = items
     .filter(
       (i) =>
-        !i.isCompleted &&  // 학습완료 항목은 전체자료에서 제외
-        (typeFilter === "all" || i.type === typeFilter) &&
         (!search ||
           i.title.toLowerCase().includes(search.toLowerCase()) ||
-          i.content.toLowerCase().includes(search.toLowerCase()) ||
-          i.tags.some((t) => t.toLowerCase().includes(search.toLowerCase())))
+          i.content.toLowerCase().includes(search.toLowerCase()))
     )
     .sort((a, b) => {
-      // ⭐ 즉즐찾기(학습할자료) 항목은 항상 맨 앞으로 배치
-      if (a.isPriority && !b.isPriority) return -1;
-      if (!a.isPriority && b.isPriority) return 1;
-      // 동일 우선순위라면 선택된 정렬 기준 적용
       if (sort === "oldest") return a.createdAt - b.createdAt;
       return b.createdAt - a.createdAt;
     });
@@ -73,12 +57,17 @@ export default function ArchivePage() {
       </header>
 
       <main className="p-5 md:p-8 pb-24 md:pb-8">
-        <header className="mb-12">
-          <h1 className="text-4xl font-black text-[#1d1d1f] tracking-tight mb-2">전체 자료</h1>
+        <section className="mb-8">
+          <h2
+            className="text-3xl font-extrabold text-[#2b3437] mb-1"
+            style={{ fontFamily: "Manrope, sans-serif" }}
+          >
+            전체 자료
+          </h2>
           <p className="text-[#586064]">총 {items.length}개의 학습 자료</p>
-        </header>
+        </section>
 
-        {/* Filter bar removed for minimalism */}
+        {/* Filter bar */}
         <div className="flex justify-end mb-6">
           <div className="relative group">
             <select

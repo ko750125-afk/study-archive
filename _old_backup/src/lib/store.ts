@@ -55,8 +55,6 @@ export const useStore = create<StoreState>()(
           try {
             const ref = await addDoc(collection(db, "archive"), {
               ...itemData,
-              thumbnail: itemData.thumbnail || "",
-              description: itemData.description || "",
               isPriority: false,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
@@ -129,7 +127,6 @@ export const useStore = create<StoreState>()(
                 createdAt: toMs(data.createdAt),
                 updatedAt: toMs(data.updatedAt),
                 isPriority: data.isPriority || false,
-                isCompleted: data.isCompleted || false,  // 학습완료 여부
               };
             });
             set({ items, isLoaded: true, isConnected: true });

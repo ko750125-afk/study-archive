@@ -9,15 +9,13 @@ export function Sidebar() {
   const items = useStore((s) => s.items);
 
   const menuItems = [
-    { id: "dashboard", icon: "dashboard", label: "학습할 자료", href: "/" },
-    { id: "archive", icon: "inventory_2", label: "전체 자료", href: "/archive" },
-    { id: "completed", icon: "task_alt", label: "학습완료", href: "/completed" },
+    { id: "dashboard", icon: "dashboard", label: "대시보드", href: "/" },
+    { id: "archive", icon: "inventory_2", label: "학습할 자료", href: "/archive" },
   ];
 
   const bottomItems: { id: string; icon: string; label: string; href: string }[] = [];
 
   const total = items.length;
-  const completedCount = items.filter((i) => i.isCompleted).length; // 완료 수
   // Simple usage calculation for demo
   const usage = Math.min(Math.round((total / 100) * 100), 100);
 
@@ -60,19 +58,9 @@ export function Sidebar() {
               }`}>
                 {item.icon}
               </span>
-              <span className="text-sm font-bold tracking-tight flex-1">
+              <span className="text-sm font-bold tracking-tight">
                 {item.label}
               </span>
-              {/* 학습완료 메뉴에 완료 항목 수 배지 표시 */}
-              {item.id === "completed" && completedCount > 0 && (
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                  pathname === item.href
-                    ? "bg-white/20 text-white"
-                    : "bg-emerald-100 text-emerald-600"
-                }`}>
-                  {completedCount}
-                </span>
-              )}
             </Link>
           ))}
         </nav>
